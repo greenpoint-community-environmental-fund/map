@@ -1,0 +1,335 @@
+<html>
+    <head>
+        <link href='http://fonts.googleapis.com/css?family=Roboto+Slab|Hind:400,600' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+        <link rel="stylesheet" href="node_modules/nouislider/distribute/nouislider.min.css" />
+        <style>
+            html {
+                box-sizing: border-box;
+            }
+
+            *, *:before, *:after {
+                box-sizing: inherit;
+            }
+
+            html, body, #map {
+                font-family: Hind, sans-serif;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+
+            #map {
+                float: left;
+                width: 66%;
+            }
+
+            #sidebar {
+                float: left;
+                padding: 10px;
+                width: 34%;
+            }
+
+            .leaflet-popup img {
+                max-width: 100%;
+            }
+
+            .leaflet-container .leaflet-popup a {
+                color: #70bf52;
+                display: block;
+                font-family: "Roboto Slab", serif;
+                font-size: 16px;
+                font-weight: bold;
+                text-align: center;
+                text-decoration: none;
+            }
+
+            .filters h2 {
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
+
+            .filter {
+                border-top: 1px solid #F2F2F2;
+                padding: 10px 0;
+                position: relative;
+            }
+
+            .filter select {
+                width: 100%;
+            }
+
+            .filter input {
+                width: 100%;
+            }
+
+            .filter input[type=checkbox] {
+                width: auto;
+            }
+
+            .filter-name {
+                font-weight: bold;
+            }
+
+            .min-amount-display {
+                float: left;
+            }
+
+            .max-amount-display {
+                float: right;
+            }
+
+            .noUi-target {
+                border: none;
+                height: 8px;
+            }
+
+            .noUi-base {
+                background: #FFD530;
+            }
+
+            .noUi-horizontal .noUi-handle {
+                border: none;
+                border-radius: 50%;
+                box-shadow: none;
+                background: #FFD530;
+                height: 14px;
+                left: -7px;
+                top: -3px;
+                width: 14px;
+            }
+
+            .noUi-handle:after {
+                display: none;
+            }
+
+            .noUi-handle:before {
+                display: none;
+            }
+        </style>
+
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="sidebar">
+            <div class="description">
+                Brief description of the map and how to use it could go here.
+            </div>
+            <section class="filters">
+                <h2>Filter GCEF projects by:</h2>
+                <div class="filter">
+                    <div class="filter-name">Project Category</div>
+                    <select class="filter-category">
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Project Lead</div>
+                    <select class="filter-lead">
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Total GCEF Grant Amount</div>
+                    <div class="filter-amount"></div>
+                    <div class="amount-display">
+                        <span class="min-amount-display"></span>
+                        <span class="max-amount-display"></span>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Project Status</div>
+                    <div>
+                        <label>
+                            <input type="checkbox" name="all">
+                            All Projects
+                        </label>
+                        <label>
+                            <input type="checkbox" name="ongoing">
+                            ongoing
+                        </label>
+                        <label>
+                            <input type="checkbox" name="completed">
+                            completed
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script src="node_modules/nouislider/distribute/nouislider.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+        <script>
+            var map;
+            var projectData;
+            var geoJsonLayer;
+
+            var filters = {
+                category: null,
+                lead: null,
+                minAmount: null,
+                maxAmount: null
+            }
+
+            function initializeAmountInput(minAmount, maxAmount) {
+                var amountInput = document.getElementsByClassName('filter-amount')[0];
+                noUiSlider.create(amountInput, {
+                    start: [minAmount, maxAmount],
+                    range: {
+                        min: minAmount,
+                        max: maxAmount
+                    },
+                    step: 1000
+                });
+
+                var minAmountDisplay = document.getElementsByClassName('min-amount-display')[0];
+                var maxAmountDisplay = document.getElementsByClassName('max-amount-display')[0];
+                amountInput.noUiSlider.on('update', function () {
+                    var currentValues = amountInput.noUiSlider.get();
+                    filters.minAmount = currentValues[0];
+                    filters.maxAmount = currentValues[1];
+
+                    minAmountDisplay.innerText = parseFloat(filters.minAmount).toLocaleString('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0
+                    });
+                    maxAmountDisplay.innerText = parseFloat(filters.maxAmount).toLocaleString('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0
+                    });
+                    updateFilters();
+                });
+            }
+
+            function initializeCategoryInput(categories) {
+                var categoryInput = document.getElementsByClassName('filter-category')[0];
+                categories.forEach(function (category) {
+                    var option = document.createElement('option');
+                    option.innerText = category;
+                    categoryInput.appendChild(option);
+                });
+                categoryInput.addEventListener('change', function (e) {
+                    var selected = e.target.options.item(e.target.options.selectedIndex);
+                    filters.category = selected.innerText === 'Show all' ? null : selected.innerText;
+                    updateFilters();
+                });
+            }
+
+            function initializeLeadInput(leads) {
+                var leadInput = document.getElementsByClassName('filter-lead')[0];
+                leads.forEach(function (lead) {
+                    var option = document.createElement('option');
+                    option.innerText = lead;
+                    leadInput.appendChild(option);
+                });
+                leadInput.addEventListener('change', function (e) {
+                    var selected = e.target.options.item(e.target.options.selectedIndex);
+                    filters.lead = selected.innerText === 'Show all' ? null : selected.innerText;
+                    updateFilters();
+                });
+            }
+
+            function initializeMapLayer(projectData) {
+                geoJsonLayer = L.geoJson(projectData, {
+                    onEachFeature: function (feature, layer) {
+                        layer.bindPopup('<a href="http://gcefund.org/#portfolio-' + feature.properties['id'] + '" target="_blank">' + feature.properties['Project Name'] + '</a><p>Project Lead: ' + feature.properties['Project Lead'] + '<br/>GCEF Grant Money: ' + feature.properties['GCEF Grant Money'] + '</p><img src="' + feature.properties['Image URL'] + '" />');
+                    },
+
+                    pointToLayer: function (feature, latlng) {
+                        return L.circleMarker(latlng);
+                    },
+
+                    style: function (feature) {
+                        var style = {};
+                        if (feature.properties['Project Name'] === 11222) {
+                          style = {
+                            fill: false,
+                            color: '#ffd42c'
+                          };
+                        }
+                        else {
+                          style = {
+                              fillOpacity: 0.8,
+                              stroke: false
+                          };
+                          style.fillColor = '#231f20';
+                        }
+                        return style;
+                    }
+                })
+                    .addTo(map);
+                map.fitBounds(geoJsonLayer.getBounds());
+            }
+
+            function updateFilters() {
+                if (!geoJsonLayer) return;
+                geoJsonLayer.eachLayer(function (layer) {
+                    var properties = layer.feature.properties;
+
+                    if (filters.category && !(properties.Category === filters.category)) {
+                        layer.removeFrom(map);
+                    } else if (filters.lead && !(properties['Project Lead'] === filters.lead)) {
+                        layer.removeFrom(map);
+                    } else if (filters.minAmount && properties.fixedAmount < filters.minAmount) {
+                        layer.removeFrom(map);
+                    } else if (filters.maxAmount && properties.fixedAmount > filters.maxAmount) {
+                        layer.removeFrom(map);
+                    } else {
+                        layer.addTo(map);
+                    }
+                });
+            }
+
+            $(document).ready(function () {
+                map = L.map('map').setView([40.72, -73.95], 13);
+                L.tileLayer('https://{s}.tiles.mapbox.com/v4/{mapId}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                    accessToken: 'pk.eyJ1IjoiZ2NlZnVuZCIsImEiOiJjaWhwaXJhdDEwNDVldXJseHZxcG9tdjVkIn0.YkR7jTjQ9W2UO1F6N1nxRw',
+                    attribution: '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+                    maxZoom: 18,
+                    mapId: 'gcefund.ae7ef1d6'
+                }).addTo(map);
+
+                $.getJSON('https://raw.githubusercontent.com/greenpoint-community-environmental-fund/project-map-data/master/projects.geojson', function (data) {
+                    projectData = data;
+
+                    var categories = [];
+                    var leads = [];
+                    var minAmount;
+                    var maxAmount;
+
+                    projectData.features.forEach(function (project) {
+                        var category = project.properties.Category;
+                        if (category && categories.indexOf(category) === -1) {
+                            categories.push(category);
+                        }
+
+                        var lead = project.properties['Project Lead'];
+                        if (lead && leads.indexOf(lead) === -1) {
+                            leads.push(lead);
+                        }
+
+                        var amount = project.properties['GCEF Grant Money'];
+                        amount = project.properties.fixedAmount = parseFloat(amount.replace(/\$|,/g, ''));
+                        if (!minAmount || amount < minAmount) minAmount = amount;                       
+                        if (!maxAmount || amount > maxAmount) maxAmount = amount;                       
+                    });
+
+                    categories.sort();
+                    leads.sort();
+                    filters.minAmount = minAmount;
+                    filters.maxAmount = maxAmount;
+
+                    initializeAmountInput(minAmount, maxAmount);
+                    initializeCategoryInput(categories);
+                    initializeLeadInput(leads);
+                    initializeMapLayer(projectData);
+                });
+            });
+        </script>
+    </body>
+</html>
