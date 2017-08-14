@@ -294,11 +294,11 @@
 
             $(document).ready(function () {
                 map = L.map('map').setView([40.72, -73.95], 13);
-                L.tileLayer('https://{s}.tiles.mapbox.com/v4/{mapId}/{z}/{x}/{y}.png?access_token={accessToken}', {
+                L.tileLayer('https://api.mapbox.com/styles/v1/gcefund/{mapId}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
                     accessToken: 'pk.eyJ1IjoiZ2NlZnVuZCIsImEiOiJjaWhwaXJhdDEwNDVldXJseHZxcG9tdjVkIn0.YkR7jTjQ9W2UO1F6N1nxRw',
                     attribution: '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
                     maxZoom: 18,
-                    mapId: 'gcefund.ae7ef1d6'
+                    mapId: 'cita4hjan000a2ip692f15ujo'
                 }).addTo(map);
 
                 $.getJSON('https://raw.githubusercontent.com/greenpoint-community-environmental-fund/project-map-data/master/projects.geojson', function (data) {
