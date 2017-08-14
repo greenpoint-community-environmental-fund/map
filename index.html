@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta charset="utf-8">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab|Hind:400,600' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
         <link rel="stylesheet" href="node_modules/nouislider/distribute/nouislider.min.css" />
@@ -159,6 +160,7 @@
                 display: none;
                 height: 50px;
                 left: 0;
+                padding: 13px;
                 position: absolute;
                 width: 66%;
                 z-index: 1000;
@@ -168,13 +170,49 @@
                 display: block;
             }
 
+            .greenpoint-wide-bar-inner {
+                align-items: center;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: no-wrap;
+                justify-content: center;
+            }
+
+            .greenpoint-wide-title {
+                float: left;
+            }
+
+            .greenpoint-wide-list {
+                float: left;
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .greenpoint-wide-list.leaflet-container {
+                background: none;
+            }
+
             .greenpoint-wide-bar .project {
                 background: black;
                 border-radius: 50%;
                 cursor: pointer;
                 float: left;
                 height: 12px;
+                margin: 0 15px;
                 width: 12px;
+            }
+
+            .greenpoint-wide-popup {
+                background: white;
+                bottom: 20px;
+                margin-left: -7px;
+                position: absolute;
+                z-index: 1000;
+            }
+
+            .greenpoint-wide-popup .leaflet-popup-content {
+                width: 250px;
             }
         </style>
 
@@ -182,7 +220,11 @@
     <body>
         <div id="map"></div>
         <div class="greenpoint-wide-bar">
-            Greenpoint-wide Projects ():
+            <div class="greenpoint-wide-bar-inner">
+                <div class="greenpoint-wide-title">Greenpoint-Wide Projects (<span class="greenpoint-wide-count"></span>):</div>
+                <ul class="greenpoint-wide-list leaflet-container"></ul>
+                <div style="clear: both;"></div>
+            </div>
         </div>
         <div id="sidebar">
             <div class="description">
@@ -240,6 +282,19 @@
         <script src="node_modules/nouislider/distribute/nouislider.min.js"></script>
         <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
         <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+
+        <script id="popup-template" type="text/template">
+            <a class="leaflet-popup-close-button" href="#close">×</a>
+            <div class="leaflet-popup-content-wrapper">
+                <div class="leaflet-popup-content">
+                    <img class="leaflet-popup-image" />
+                    <a class="leaflet-popup-name" target="_blank"></a>
+                    <p class="leaflet-popup-project-lead"></p>
+                </div>
+            </div>
+            <div class="leaflet-popup-tip-container"><div class="leaflet-popup-tip"></div></div>
+        </script>
+
         <script>
             var map;
             var projectData;
@@ -299,13 +354,45 @@
             }
 
             function initializeGreenpointWideBar(projects) {
-                var greenpointWideBar = document.getElementsByClassName('greenpoint-wide-bar')[0];
+                var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
                 projects.forEach(function (project) {
-                    var projectDot = document.createElement('div');
+                    var projectDot = document.createElement('li');
                     addClass(projectDot, 'project');
-                    // TODO onclick...
-                    greenpointWideBar.appendChild(projectDot);
+                    projectDot.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        // Remove any current popups
+                        map.closePopup();
+                        var currentPopup = greenpointWideList.getElementsByClassName('greenpoint-wide-popup')[0];
+                        if (currentPopup) {
+                            greenpointWideList.removeChild(currentPopup);
+                        }
+
+                        var popup = document.createElement('div');
+                        popup.innerHTML = document.getElementById('popup-template').innerHTML;
+                        addClass(popup, 'greenpoint-wide-popup');
+                        addClass(popup, 'leaflet-popup');
+                        greenpointWideList.append(popup);
+
+                        popup.getElementsByClassName('leaflet-popup-image')[0].src = project.properties['Image URL'];
+                        var popupName = popup.getElementsByClassName('leaflet-popup-name')[0];
+                        popupName.href = ('http://gcefund.org/#portfolio-' + project.properties['id']);
+                        popupName.innerText = project.properties['Project Name'];
+                        popup.getElementsByClassName('leaflet-popup-project-lead')[0].innerText = project.properties['Project Lead'];
+
+                        var style = getComputedStyle(popup);
+                        popup.style.marginLeft = -(parseFloat(style.width) / 2);
+
+                        popup.getElementsByClassName('leaflet-popup-close-button')[0].addEventListener('click', function (e) {
+                            e.preventDefault();
+                            greenpointWideList.removeChild(popup);
+                        });
+                    });
+                    greenpointWideList.appendChild(projectDot);
                 });
+
+                var greenpointWideCount = document.getElementsByClassName('greenpoint-wide-count')[0];
+                greenpointWideCount.innerText = projects.length;
             }
 
             function initializeGreenpointWideButtons() {
