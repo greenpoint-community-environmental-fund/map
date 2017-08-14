@@ -286,13 +286,15 @@
         <script id="popup-template" type="text/template">
             <a class="leaflet-popup-close-button" href="#close">×</a>
             <div class="leaflet-popup-content-wrapper">
-                <div class="leaflet-popup-content">
-                    <img class="leaflet-popup-image" />
-                    <a class="leaflet-popup-name" target="_blank"></a>
-                    <p class="leaflet-popup-project-lead"></p>
-                </div>
+                <div class="leaflet-popup-content"></div>
             </div>
             <div class="leaflet-popup-tip-container"><div class="leaflet-popup-tip"></div></div>
+        </script>
+
+        <script id="popup-inner-template" type="text/template">
+            <img class="leaflet-popup-image" />
+            <a class="leaflet-popup-name" target="_blank"></a>
+            <p class="leaflet-popup-project-lead"></p>
         </script>
 
         <script>
@@ -374,11 +376,10 @@
                         addClass(popup, 'leaflet-popup');
                         greenpointWideList.append(popup);
 
-                        popup.getElementsByClassName('leaflet-popup-image')[0].src = project.properties['Image URL'];
-                        var popupName = popup.getElementsByClassName('leaflet-popup-name')[0];
-                        popupName.href = ('http://gcefund.org/#portfolio-' + project.properties['id']);
-                        popupName.innerText = project.properties['Project Name'];
-                        popup.getElementsByClassName('leaflet-popup-project-lead')[0].innerText = project.properties['Project Lead'];
+                        var popupContents = document.createElement('div');
+                        popupContents.innerHTML = document.getElementById('popup-inner-template').innerHTML;
+                        fillPopupTemplate(popupContents, project.properties);
+                        popup.getElementsByClassName('leaflet-popup-content')[0].innerHTML = popupContents.innerHTML;
 
                         var style = getComputedStyle(popup);
                         popup.style.marginLeft = -(parseFloat(style.width) / 2);
@@ -445,6 +446,14 @@
                 });
             }
 
+            function fillPopupTemplate(element, featureProperies) {
+                element.getElementsByClassName('leaflet-popup-image')[0].src = featureProperies['Image URL'];
+                var popupName = element.getElementsByClassName('leaflet-popup-name')[0];
+                popupName.href = ('http://gcefund.org/#portfolio-' + featureProperies['id']);
+                popupName.innerText = featureProperies['Project Name'];
+                element.getElementsByClassName('leaflet-popup-project-lead')[0].innerText = featureProperies['Project Lead'];
+            }
+
             function initializeMapLayer(projectData) {
                 var filteredProjectData = JSON.parse(JSON.stringify(projectData));
                 filteredProjectData.features = filteredProjectData.features.filter(function (feature) {
@@ -452,7 +461,10 @@
                 });
                 geoJsonLayer = L.geoJson(filteredProjectData, {
                     onEachFeature: function (feature, layer) {
-                        layer.bindPopup('<img src="' + feature.properties['Image URL'] + '" /><a href="http://gcefund.org/#portfolio-' + feature.properties['id'] + '" target="_blank">' + feature.properties['Project Name'] + '</a><p>' + feature.properties['Project Lead'] + '</p>');
+                        var popupContents = document.createElement('div');
+                        popupContents.innerHTML = document.getElementById('popup-inner-template').innerHTML;
+                        fillPopupTemplate(popupContents, feature.properties);
+                        layer.bindPopup(popupContents);
                     },
 
                     pointToLayer: function (feature, latlng) {
