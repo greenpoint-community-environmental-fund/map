@@ -114,11 +114,76 @@
             .noUi-handle:before {
                 display: none;
             }
+
+            .filters.greenpoint-wide {
+                border-top: 1px solid black;
+            }
+
+            .filters.greenpoint-wide .filter {
+                border-bottom: 1px solid #F2F2F2;
+                border-top: none;
+            }
+
+            .filter-button {
+                background: white;
+                border: 1px solid #E6E6E6;
+                border-radius: 5px;
+                color: black;
+                padding: 10px;
+                text-transform: uppercase;
+            }
+
+            .filter-button:focus {
+                outline: none;
+            }
+
+            .filter-button:first-of-type {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .filter-button:last-of-type {
+                border-left: none;
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+
+            .filter-button.enabled {
+                background: #B0B0B0;
+                color: white;
+            }
+
+            .greenpoint-wide-bar {
+                background: #FCD741;
+                bottom: 0;
+                display: none;
+                height: 50px;
+                left: 0;
+                position: absolute;
+                width: 66%;
+                z-index: 1000;
+            }
+
+            .greenpoint-wide-bar.enabled {
+                display: block;
+            }
+
+            .greenpoint-wide-bar .project {
+                background: black;
+                border-radius: 50%;
+                cursor: pointer;
+                float: left;
+                height: 12px;
+                width: 12px;
+            }
         </style>
 
     </head>
     <body>
         <div id="map"></div>
+        <div class="greenpoint-wide-bar">
+            Greenpoint-wide Projects ():
+        </div>
         <div id="sidebar">
             <div class="description">
                 Brief description of the map and how to use it could go here.
@@ -162,6 +227,12 @@
                             completed
                         </label>
                     </div>
+                </div>
+            </section>
+            <section class="filters greenpoint-wide">
+                <h2>Show Greenpoint-wide projects?</h2>
+                <div class="filter">
+                    <button class="filter-button greenpoint-wide-yes">yes</button><button class="filter-button enabled greenpoint-wide-no">no</button>
                 </div>
             </section>
         </div>
@@ -227,6 +298,52 @@
                 });
             }
 
+            function initializeGreenpointWideBar(projects) {
+                var greenpointWideBar = document.getElementsByClassName('greenpoint-wide-bar')[0];
+                projects.forEach(function (project) {
+                    var projectDot = document.createElement('div');
+                    addClass(projectDot, 'project');
+                    // TODO onclick...
+                    greenpointWideBar.appendChild(projectDot);
+                });
+            }
+
+            function initializeGreenpointWideButtons() {
+                var yesButton = document.getElementsByClassName('greenpoint-wide-yes')[0];
+                var noButton = document.getElementsByClassName('greenpoint-wide-no')[0];
+                var greenpointWideBar = document.getElementsByClassName('greenpoint-wide-bar')[0];
+
+                yesButton.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    addClass(yesButton, 'enabled');
+                    removeClass(noButton, 'enabled');
+                    addClass(greenpointWideBar, 'enabled');
+                });
+
+                noButton.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    addClass(noButton, 'enabled');
+                    removeClass(yesButton, 'enabled');
+                    removeClass(greenpointWideBar, 'enabled');
+                });
+            }
+
+            function addClass(element, className) {
+                if (element.classList) {
+                    element.classList.add(className);
+                } else {
+                  element.className += ' ' + className;
+                }
+            }
+
+            function removeClass(element, className) {
+                if (element.classList) {
+                    element.classList.remove(className);
+                } else {
+                    element.className = element.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+                }
+            }
+
             function initializeLeadInput(leads) {
                 var leadInput = document.getElementsByClassName('filter-lead')[0];
                 leads.forEach(function (lead) {
@@ -242,7 +359,11 @@
             }
 
             function initializeMapLayer(projectData) {
-                geoJsonLayer = L.geoJson(projectData, {
+                var filteredProjectData = JSON.parse(JSON.stringify(projectData));
+                filteredProjectData.features = filteredProjectData.features.filter(function (feature) {
+                    return feature.properties['Greenpoint Wide'] !== 'yes';
+                });
+                geoJsonLayer = L.geoJson(filteredProjectData, {
                     onEachFeature: function (feature, layer) {
                         layer.bindPopup('<img src="' + feature.properties['Image URL'] + '" /><a href="http://gcefund.org/#portfolio-' + feature.properties['id'] + '" target="_blank">' + feature.properties['Project Name'] + '</a><p>' + feature.properties['Project Lead'] + '</p>');
                     },
@@ -331,8 +452,14 @@
                     filters.minAmount = minAmount;
                     filters.maxAmount = maxAmount;
 
+                    var greenpointWideProjects = projectData.features.filter(function (project) {
+                        return project.properties['Greenpoint Wide'] === 'yes';
+                    });
+
                     initializeAmountInput(minAmount, maxAmount);
                     initializeCategoryInput(categories);
+                    initializeGreenpointWideBar(greenpointWideProjects);
+                    initializeGreenpointWideButtons();
                     initializeLeadInput(leads);
                     initializeMapLayer(projectData);
                 });
