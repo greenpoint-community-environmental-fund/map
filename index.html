@@ -79,7 +79,7 @@
                 width: 100%;
             }
 
-            .filter input[type=checkbox] {
+            .filter input[type=radio] {
                 width: auto;
             }
 
@@ -265,15 +265,15 @@
                     <div class="filter-name">Project Status</div>
                     <div>
                         <label>
-                            <input type="checkbox" name="all">
+                            <input type="radio" name="project-status" value="all" checked />
                             All Projects
                         </label>
                         <label>
-                            <input type="checkbox" name="ongoing">
+                            <input type="radio" name="project-status" value="ongoing" />
                             ongoing
                         </label>
                         <label>
-                            <input type="checkbox" name="completed">
+                            <input type="radio" name="project-status" value="completed" />
                             completed
                         </label>
                     </div>
@@ -314,8 +314,9 @@
                 category: null,
                 lead: null,
                 minAmount: null,
-                maxAmount: null
-            }
+                maxAmount: null,
+                status: 'all'
+            };
 
             function initializeAmountInput(minAmount, maxAmount) {
                 var amountInput = document.getElementsByClassName('filter-amount')[0];
@@ -454,6 +455,15 @@
                 });
             }
 
+            function initializeProjectStatusInput() {
+                document.querySelectorAll('input[name=project-status]').forEach(function(statusInput) {
+                    statusInput.addEventListener('change', function () {
+                        filters.status = statusInput.value;
+                        updateFilters();
+                    });
+                });
+            }
+
             function fillPopupTemplate(element, featureProperies) {
                 element.getElementsByClassName('leaflet-popup-image')[0].src = featureProperies['Image URL'];
                 var popupName = element.getElementsByClassName('leaflet-popup-name')[0];
@@ -514,7 +524,9 @@
                         layer.removeFrom(map);
                     } else if (filters.maxAmount && properties.fixedAmount > filters.maxAmount) {
                         layer.removeFrom(map);
-                    } else {
+                    } else if (filters.status !== 'all' && properties.Status !== filters.status) {
+                        layer.removeFrom(map);
+                    }else {
                         layer.addTo(map);
                     }
                 });
@@ -569,6 +581,7 @@
                     initializeGreenpointWideButtons();
                     initializeLeadInput(leads);
                     initializeMapLayer(projectData);
+                    initializeProjectStatusInput();
                 });
             });
         </script>
