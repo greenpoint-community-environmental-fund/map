@@ -364,6 +364,14 @@
                 });
             }
 
+            function hideGreenpointWidePopups() {
+                var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
+                var currentPopup = greenpointWideList.getElementsByClassName('greenpoint-wide-popup')[0];
+                if (currentPopup) {
+                    greenpointWideList.removeChild(currentPopup);
+                }
+            }
+
             function initializeGreenpointWideBar(projects) {
                 var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
                 projects.forEach(function (project) {
@@ -374,10 +382,7 @@
 
                         // Remove any current popups
                         map.closePopup();
-                        var currentPopup = greenpointWideList.getElementsByClassName('greenpoint-wide-popup')[0];
-                        if (currentPopup) {
-                            greenpointWideList.removeChild(currentPopup);
-                        }
+                        hideGreenpointWidePopups();
 
                         var popup = document.createElement('div');
                         popup.innerHTML = document.getElementById('popup-template').innerHTML;
@@ -485,6 +490,12 @@
                         popupContents.innerHTML = document.getElementById('popup-inner-template').innerHTML;
                         fillPopupTemplate(popupContents, feature.properties);
                         layer.bindPopup(popupContents);
+
+                        layer.on({
+                            click: function () {
+                                hideGreenpointWidePopups();
+                            }
+                        });
                     },
 
                     pointToLayer: function (feature, latlng) {
