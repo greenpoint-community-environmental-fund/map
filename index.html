@@ -211,6 +211,10 @@
                 width: 12px;
             }
 
+            .greenpoint-wide-bar .project.active {
+                background: #70bf52;
+            }
+
             .greenpoint-wide-popup {
                 background: white;
                 bottom: 20px;
@@ -365,11 +369,17 @@
             }
 
             function hideGreenpointWidePopups() {
+                // Find and hide popups
                 var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
                 var currentPopup = greenpointWideList.getElementsByClassName('greenpoint-wide-popup')[0];
                 if (currentPopup) {
                     greenpointWideList.removeChild(currentPopup);
                 }
+
+                // Find active dots and deactivate them
+                document.querySelectorAll('.project.active').forEach(function (projectDot) {
+                    removeClass(projectDot, 'active');
+                });
             }
 
             function initializeGreenpointWideBar(projects) {
@@ -383,6 +393,8 @@
                         // Remove any current popups
                         map.closePopup();
                         hideGreenpointWidePopups();
+
+                        addClass(projectDot, 'active');
 
                         var popup = document.createElement('div');
                         popup.innerHTML = document.getElementById('popup-template').innerHTML;
@@ -402,7 +414,7 @@
 
                         popup.getElementsByClassName('leaflet-popup-close-button')[0].addEventListener('click', function (e) {
                             e.preventDefault();
-                            greenpointWideList.removeChild(popup);
+                            hideGreenpointWidePopups();
                         });
                     });
                     greenpointWideList.appendChild(projectDot);
