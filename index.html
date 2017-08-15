@@ -504,8 +504,12 @@
                         layer.bindPopup(popupContents);
 
                         layer.on({
-                            click: function () {
+                            popupopen: function () {
                                 hideGreenpointWidePopups();
+                                layer.setStyle({ fillColor: '#70bf52' });
+                            },
+                            popupclose: function () {
+                                layer.setStyle({ fillColor: '#231f20' });
                             }
                         });
                     },
