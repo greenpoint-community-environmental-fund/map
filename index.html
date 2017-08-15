@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8">
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab|Hind:400,600' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" />
         <link rel="stylesheet" href="node_modules/nouislider/distribute/nouislider.min.css" />
         <style>
             html {
@@ -288,7 +288,7 @@
         </div>
 
         <script src="node_modules/nouislider/distribute/nouislider.min.js"></script>
-        <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet@1.1.0/dist/leaflet.js"></script>
         <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 
         <script id="popup-template" type="text/template">
@@ -390,8 +390,10 @@
                         fillPopupTemplate(popupContents, project.properties);
                         popup.getElementsByClassName('leaflet-popup-content')[0].innerHTML = popupContents.innerHTML;
 
-                        var style = getComputedStyle(popup);
-                        popup.style.marginLeft = -(parseFloat(style.width) / 2);
+                        var popupStyle = getComputedStyle(popup);
+                        var dotStyle = getComputedStyle(projectDot);
+                        // Adjust left style on popup to get it over the dot clicked
+                        popup.style.left = (projectDot.offsetLeft - (parseFloat(popupStyle.width) / 2) + (parseFloat(dotStyle.width) / 2) + (-parseFloat(popupStyle.marginLeft))) + 'px';
 
                         popup.getElementsByClassName('leaflet-popup-close-button')[0].addEventListener('click', function (e) {
                             e.preventDefault();
