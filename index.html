@@ -519,21 +519,11 @@
                     },
 
                     style: function (feature) {
-                        var style = {};
-                        if (feature.properties['Project Name'] === 11222) {
-                          style = {
-                            fill: false,
-                            color: '#ffd42c'
-                          };
-                        }
-                        else {
-                          style = {
-                              fillOpacity: 0.8,
-                              stroke: false
-                          };
-                          style.fillColor = '#231f20';
-                        }
-                        return style;
+                        return {
+                            fillColor: '#231f20',
+                            fillOpacity: 0.8,
+                            stroke: false
+                        };
                     }
                 })
                     .addTo(map);
