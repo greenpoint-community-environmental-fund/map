@@ -173,6 +173,15 @@
                 color: white;
             }
 
+            .project-status-label {
+                display: inline-block;
+                margin-right: 25px;
+            }
+
+            .project-status-label:last-of-type {
+                margin-right: 0;
+            }
+
             .greenpoint-wide-bar {
                 background: #ffd530;
                 bottom: 0;
@@ -288,17 +297,17 @@
                 <div class="filter">
                     <div class="filter-name">Project Status</div>
                     <div>
-                        <label>
+                        <label class="project-status-label">
                             <input type="radio" name="project-status" value="all" checked />
                             All Projects
                         </label>
-                        <label>
+                        <label class="project-status-label">
                             <input type="radio" name="project-status" value="ongoing" />
-                            ongoing
+                            Ongoing
                         </label>
-                        <label>
+                        <label class="project-status-label">
                             <input type="radio" name="project-status" value="completed" />
-                            completed
+                            Completed
                         </label>
                     </div>
                 </div>
