@@ -572,6 +572,9 @@
             }
 
             function updateFilters() {
+                // Dismiss neighborhood-wide popups when filters change
+                hideGreenpointWidePopups();
+
                 if (!geoJsonLayer) return;
                 geoJsonLayer.eachLayer(function (layer) {
                     var properties = layer.feature.properties;
