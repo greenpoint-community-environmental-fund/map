@@ -129,7 +129,16 @@
             }
 
             .noUi-base {
+                background: #D9D9D9;
+            }
+
+            .noUi-connect {
                 background: #FFD530;
+                box-shadow: none;
+            }
+
+            .noUi-handle:focus {
+                outline: none;
             }
 
             .noUi-horizontal .noUi-handle {
@@ -374,6 +383,7 @@
                 var amountInput = document.getElementsByClassName('filter-amount')[0];
                 noUiSlider.create(amountInput, {
                     start: [minAmount, maxAmount],
+                    connect: true,
                     range: {
                         min: minAmount,
                         max: maxAmount
