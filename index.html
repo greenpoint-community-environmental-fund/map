@@ -1,6 +1,9 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <link href='http://fonts.googleapis.com/css?family=Roboto+Slab|Hind:400,600' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.1.0/dist/leaflet.css" />
         <link rel="stylesheet" href="node_modules/nouislider/distribute/nouislider.min.css" />
@@ -31,6 +34,16 @@
                 float: left;
                 padding: 10px 30px;
                 width: 34%;
+            }
+
+            @media all and (max-width: 600px) {
+                #map {
+                    width: 100%;
+                }
+
+                #sidebar {
+                    display: none;
+                }
             }
 
             .leaflet-popup-content-wrapper {
