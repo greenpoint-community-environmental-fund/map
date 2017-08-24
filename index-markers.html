@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href='http://fonts.googleapis.com/css?family=Roboto+Slab|Hind:400,600' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+        <link rel="stylesheet" href="node_modules/nouislider/distribute/nouislider.min.css" />
+        <link rel="stylesheet" href="./index.css" />
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="greenpoint-wide-bar">
+            <div class="greenpoint-wide-bar-inner">
+                <div class="greenpoint-wide-title">Greenpoint-Wide Projects (<span class="greenpoint-wide-count"></span>):</div>
+                <ul class="greenpoint-wide-list leaflet-container"></ul>
+                <div style="clear: both;"></div>
+            </div>
+        </div>
+        <div id="sidebar">
+            <div class="description">
+                Brief description of the map and how to use it could go here.
+            </div>
+            <section class="filters">
+                <h2>Filter GCEF projects by:</h2>
+                <div class="filter">
+                    <div class="filter-name">Project Category</div>
+                    <select class="filter-category">
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Project Lead</div>
+                    <select class="filter-lead">
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Total GCEF Grant Amount</div>
+                    <div class="filter-amount"></div>
+                    <div class="amount-display">
+                        <span class="min-amount-display"></span>
+                        <span class="max-amount-display"></span>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+                <div class="filter">
+                    <div class="filter-name">Project Status</div>
+                    <div>
+                        <label class="project-status-label">
+                            <input type="radio" name="project-status" value="all" checked />
+                            All Projects
+                        </label>
+                        <label class="project-status-label">
+                            <input type="radio" name="project-status" value="ongoing" />
+                            Ongoing
+                        </label>
+                        <label class="project-status-label">
+                            <input type="radio" name="project-status" value="completed" />
+                            Completed
+                        </label>
+                    </div>
+                </div>
+            </section>
+            <section class="filters greenpoint-wide">
+                <h2>Show Greenpoint-wide projects?</h2>
+                <div class="filter">
+                    <button class="filter-button greenpoint-wide-yes">yes</button><button class="filter-button enabled greenpoint-wide-no">no</button>
+                </div>
+            </section>
+            <section>
+                <div class="last-updated">Map last updated August 2017</div>
+            </section>
+        </div>
+
+        <script src="node_modules/nouislider/distribute/nouislider.min.js"></script>
+        <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+
+        <script id="popup-template" type="text/template">
+            <a class="leaflet-popup-close-button" href="#close">×</a>
+            <div class="leaflet-popup-content-wrapper">
+                <div class="leaflet-popup-content"></div>
+            </div>
+            <div class="leaflet-popup-tip-container"><div class="leaflet-popup-tip"></div></div>
+        </script>
+
+        <script id="popup-inner-template" type="text/template">
+            <img class="leaflet-popup-image" />
+            <a class="leaflet-popup-name" target="_blank"></a>
+            <p class="leaflet-popup-project-lead"></p>
+        </script>
+
+        <script src="./index-markers.js"></script>
+    </body>
+</html>
