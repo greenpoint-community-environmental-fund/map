@@ -283,7 +283,50 @@ function updateFilters() {
     greenpointWideCount.innerText = greenpointWideFiltered;
 }
 
-$(document).ready(function () {
+function onDataLoad(data) {
+    projectData = data;
+
+    var categories = [];
+    var leads = [];
+    var minAmount;
+    var maxAmount;
+
+    projectData.features.forEach(function (project) {
+        var category = project.properties.Category;
+        if (category && categories.indexOf(category) === -1) {
+            categories.push(category);
+        }
+
+        var lead = project.properties['Project Lead'];
+        if (lead && leads.indexOf(lead) === -1) {
+            leads.push(lead);
+        }
+
+        var amount = project.properties['GCEF Grant Money'];
+        amount = project.properties.fixedAmount = parseFloat(amount.replace(/\$|,/g, ''));
+        if (!minAmount || amount < minAmount) minAmount = amount;                       
+        if (!maxAmount || amount > maxAmount) maxAmount = amount;                       
+    });
+
+    categories.sort();
+    leads.sort();
+    filters.minAmount = minAmount;
+    filters.maxAmount = maxAmount;
+
+    var greenpointWideProjects = projectData.features.filter(function (project) {
+        return project.properties['Greenpoint Wide'] === 'yes';
+    });
+
+    initializeAmountInput(minAmount, maxAmount);
+    initializeCategoryInput(categories);
+    initializeGreenpointWideBar(greenpointWideProjects);
+    initializeGreenpointWideButtons();
+    initializeLeadInput(leads);
+    initializeMapLayer(projectData);
+    initializeProjectStatusInput();
+}
+
+function onDocumentLoad() {
     map = L.map('map').setView([40.72, -73.95], 13);
     L.tileLayer('https://api.mapbox.com/styles/v1/gcefund/{mapId}/tiles/256/{z}/{x}/{y}?access_token={accessToken}', {
         accessToken: 'pk.eyJ1IjoiZ2NlZnVuZCIsImEiOiJjaWhwaXJhdDEwNDVldXJseHZxcG9tdjVkIn0.YkR7jTjQ9W2UO1F6N1nxRw',
@@ -296,47 +339,28 @@ $(document).ready(function () {
         hideGreenpointWidePopups();
     });
 
-    $.getJSON('https://raw.githubusercontent.com/greenpoint-community-environmental-fund/project-map-data/master/projects.geojson', function (data) {
-        projectData = data;
+    var request = new XMLHttpRequest();
+    request.open('GET', 'https://raw.githubusercontent.com/greenpoint-community-environmental-fund/project-map-data/master/projects.geojson', true);
 
-        var categories = [];
-        var leads = [];
-        var minAmount;
-        var maxAmount;
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 400) {
+            // Success!
+            var data = JSON.parse(request.responseText);
+            onDataLoad(data);
+        } else {
+            // We reached our target server, but it returned an error
+        }
+    };
 
-        projectData.features.forEach(function (project) {
-            var category = project.properties.Category;
-            if (category && categories.indexOf(category) === -1) {
-                categories.push(category);
-            }
+    request.onerror = function() {
+        // There was a connection error of some sort
+    };
 
-            var lead = project.properties['Project Lead'];
-            if (lead && leads.indexOf(lead) === -1) {
-                leads.push(lead);
-            }
+    request.send();
+}
 
-            var amount = project.properties['GCEF Grant Money'];
-            amount = project.properties.fixedAmount = parseFloat(amount.replace(/\$|,/g, ''));
-            if (!minAmount || amount < minAmount) minAmount = amount;                       
-            if (!maxAmount || amount > maxAmount) maxAmount = amount;                       
-        });
-
-        categories.sort();
-        leads.sort();
-        filters.minAmount = minAmount;
-        filters.maxAmount = maxAmount;
-
-        var greenpointWideProjects = projectData.features.filter(function (project) {
-            return project.properties['Greenpoint Wide'] === 'yes';
-        });
-
-        initializeAmountInput(minAmount, maxAmount);
-        initializeCategoryInput(categories);
-        initializeGreenpointWideBar(greenpointWideProjects);
-        initializeGreenpointWideButtons();
-        initializeLeadInput(leads);
-        initializeMapLayer(projectData);
-        initializeProjectStatusInput();
-    });
-});
-
+if (document.attachEvent ? document.readyState === 'complete' : document.readyState !== 'loading'){
+    onDocumentLoad();
+} else {
+    document.addEventListener('DOMContentLoaded', onDocumentLoad);
+}
