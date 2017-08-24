@@ -36,16 +36,6 @@
                 width: 34%;
             }
 
-            @media all and (max-width: 600px) {
-                #map {
-                    width: 100%;
-                }
-
-                #sidebar {
-                    display: none;
-                }
-            }
-
             .leaflet-popup-content-wrapper {
                 border: 2px solid #c3c3c3;
                 border-radius: 5px;
@@ -280,6 +270,41 @@
                 font-size: 12px;
                 margin-top: 10px;
             }
+
+            @media all and (max-width: 600px) {
+                #map {
+                    width: 100%;
+                }
+
+                #sidebar {
+                    display: none;
+                }
+
+                .greenpoint-wide-bar {
+                    display: block;
+                    height: 70px;
+                    padding: 5px;
+                    width: 100%;
+                }
+
+                .greenpoint-wide-title {
+                    line-height: 20px;
+                }
+
+                .greenpoint-wide-bar .project {
+                    margin: 5px;
+                    height: 20px;
+                    width: 20px;
+                }
+
+                .greenpoint-wide-popup {
+                    margin-left: 0;
+                }
+
+                .greenpoint-wide-popup .leaflet-popup-tip-container {
+                    display: none;
+                }
+            }
         </style>
 
     </head>
@@ -440,6 +465,38 @@
                 });
             }
 
+            function openGreenpointWidePopup(projectDot, project) {
+                var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
+                var popup = document.createElement('div');
+                popup.innerHTML = document.getElementById('popup-template').innerHTML;
+                addClass(popup, 'greenpoint-wide-popup');
+                addClass(popup, 'leaflet-popup');
+                greenpointWideList.append(popup);
+
+                var popupContents = document.createElement('div');
+                popupContents.innerHTML = document.getElementById('popup-inner-template').innerHTML;
+                fillPopupTemplate(popupContents, project.properties);
+                popup.getElementsByClassName('leaflet-popup-content')[0].innerHTML = popupContents.innerHTML;
+
+                var popupStyle = getComputedStyle(popup);
+                var dotStyle = getComputedStyle(projectDot);
+
+                // Adjust left style on popup to get it over the dot clicked
+                if (document.body.clientWidth > 600) {
+                    // Style popup over dot when larger than phone
+                    popup.style.left = (projectDot.offsetLeft - (parseFloat(popupStyle.width) / 2) + (parseFloat(dotStyle.width) / 2) + (-parseFloat(popupStyle.marginLeft))) + 'px';
+                } else {
+                    // Style popup above bar when phone or smaller
+                    popup.style.left = ((document.body.clientWidth / 2) - (parseFloat(popupStyle.width) / 2)) + 'px';
+                    popup.style.bottom = '80px';
+                }
+
+                popup.getElementsByClassName('leaflet-popup-close-button')[0].addEventListener('click', function (e) {
+                    e.preventDefault();
+                    hideGreenpointWidePopups();
+                });
+            }
+
             function initializeGreenpointWideBar(projects) {
                 var greenpointWideList = document.getElementsByClassName('greenpoint-wide-list')[0];
                 projects.forEach(function (project) {
@@ -459,27 +516,7 @@
                         hideGreenpointWidePopups();
 
                         addClass(projectDot, 'active');
-
-                        var popup = document.createElement('div');
-                        popup.innerHTML = document.getElementById('popup-template').innerHTML;
-                        addClass(popup, 'greenpoint-wide-popup');
-                        addClass(popup, 'leaflet-popup');
-                        greenpointWideList.append(popup);
-
-                        var popupContents = document.createElement('div');
-                        popupContents.innerHTML = document.getElementById('popup-inner-template').innerHTML;
-                        fillPopupTemplate(popupContents, project.properties);
-                        popup.getElementsByClassName('leaflet-popup-content')[0].innerHTML = popupContents.innerHTML;
-
-                        var popupStyle = getComputedStyle(popup);
-                        var dotStyle = getComputedStyle(projectDot);
-                        // Adjust left style on popup to get it over the dot clicked
-                        popup.style.left = (projectDot.offsetLeft - (parseFloat(popupStyle.width) / 2) + (parseFloat(dotStyle.width) / 2) + (-parseFloat(popupStyle.marginLeft))) + 'px';
-
-                        popup.getElementsByClassName('leaflet-popup-close-button')[0].addEventListener('click', function (e) {
-                            e.preventDefault();
-                            hideGreenpointWidePopups();
-                        });
+                        openGreenpointWidePopup(projectDot, project);
                     });
                     greenpointWideList.appendChild(projectDot);
                 });
@@ -647,6 +684,10 @@
                     maxZoom: 18,
                     mapId: 'cita4hjan000a2ip692f15ujo'
                 }).addTo(map);
+
+                map.on('click', function () {
+                    hideGreenpointWidePopups();
+                });
 
                 $.getJSON('https://raw.githubusercontent.com/greenpoint-community-environmental-fund/project-map-data/master/projects.geojson', function (data) {
                     projectData = data;
