@@ -131,27 +131,6 @@ function initializeGreenpointWideBar(projects) {
     greenpointWideCount.innerText = projects.length;
 }
 
-function initializeGreenpointWideButtons() {
-    var yesButton = document.getElementsByClassName('greenpoint-wide-yes')[0];
-    var noButton = document.getElementsByClassName('greenpoint-wide-no')[0];
-    var greenpointWideBar = document.getElementsByClassName('greenpoint-wide-bar')[0];
-
-    yesButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        addClass(yesButton, 'enabled');
-        removeClass(noButton, 'enabled');
-        addClass(greenpointWideBar, 'enabled');
-    });
-
-    noButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        addClass(noButton, 'enabled');
-        removeClass(yesButton, 'enabled');
-        removeClass(greenpointWideBar, 'enabled');
-        hideGreenpointWidePopups();
-    });
-}
-
 function addClass(element, className) {
     if (element.classList) {
         element.classList.add(className);
@@ -327,7 +306,6 @@ function onDataLoad(data) {
     initializeAmountInput(minAmount, maxAmount);
     initializeCategoryInput(categories);
     initializeGreenpointWideBar(greenpointWideProjects);
-    initializeGreenpointWideButtons();
     initializeLeadInput(leads);
     initializeMapLayer(projectData);
     initializeProjectStatusInput();
